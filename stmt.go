@@ -88,6 +88,9 @@ func (s wrappedStmt) Query(args []driver.Value) (rows driver.Rows, err error) {
 }
 
 func (s wrappedStmt) ExecContext(ctx context.Context, args []driver.NamedValue) (res driver.Result, err error) {
+	ctx, cancel := (&s.opts).setTimeout(ctx)
+	defer cancel()
+
 	if !s.hasOpExcluded(OpSQLStmtExec) {
 		span := s.GetSpan(ctx).NewChild(OpSQLStmtExec)
 		span.SetLabel("component", "database/sql")
@@ -133,6 +136,9 @@ func (s wrappedStmt) ExecContext(ctx context.Context, args []driver.NamedValue) 
 }
 
 func (s wrappedStmt) QueryContext(ctx context.Context, args []driver.NamedValue) (rows driver.Rows, err error) {
+	ctx, cancel := (&s.opts).setTimeout(ctx)
+	defer cancel()
+
 	if !s.hasOpExcluded(OpSQLStmtQuery) {
 		span := s.GetSpan(ctx).NewChild(OpSQLStmtQuery)
 		span.SetLabel("component", "database/sql")

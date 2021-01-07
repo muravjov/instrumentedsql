@@ -1,10 +1,16 @@
 package instrumentedsql
 
+import (
+	"context"
+	"time"
+)
+
 type opts struct {
 	Logger
 	Tracer
 	OpsExcluded map[string]struct{}
 	OmitArgs    bool
+	TimeoutFunc func() time.Duration
 }
 
 // Opt is a functional option type for the wrapped driver
@@ -52,4 +58,20 @@ func WithIncludeArgs() Opt {
 	return func(o *opts) {
 		o.OmitArgs = false
 	}
+}
+
+// WithTimeout sets timeout on every driver's operation except driver.ConnBeginTx.BeginTx
+func WithTimeoutFunc(f func() time.Duration) Opt {
+	return func(o *opts) {
+		o.TimeoutFunc = f
+	}
+}
+
+func (o *opts) setTimeout(ctx context.Context) (context.Context, context.CancelFunc) {
+	if f := o.TimeoutFunc; f != nil {
+		if timeout := f(); timeout != 0 {
+			return context.WithTimeout(ctx, timeout)
+		}
+	}
+	return ctx, func() {}
 }
