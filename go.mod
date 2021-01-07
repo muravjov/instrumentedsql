@@ -1,3 +1,3 @@
-module github.com/luna-duclos/instrumentedsql
+module github.com/muravjov/instrumentedsql
 
 go 1.11
